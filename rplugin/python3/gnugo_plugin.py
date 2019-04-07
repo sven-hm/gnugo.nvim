@@ -12,6 +12,8 @@ class GnugoPlugin(GnuGo):
 
         self._move_history = []
 
+        self._infoboardbuffer = None
+
 
     def Showboard(self):
 
@@ -38,12 +40,20 @@ class GnugoPlugin(GnuGo):
         self.nvim.command('buffer GnuGoInfo')
         self.nvim.command('setlocal modifiable')
 
+        head_str = '\tBLACK\tWHITE'
+        if len(self.nvim.buffers[self._infoboardbuffer]) == 0:
+            self.nvim.current.buffer.append(head_str)
+        else:
+            self.nvim.current.buffer[0] = head_str
+
         for ii, move in enumerate(self._move_history):
-            mv_str = str(ii + 1) + ': ' + move[0] \
-                    + '\t' + move[1]
-            if ii >= len(self.nvim.current.buffer):
+            ii += 1
+            mv_str = str(ii) + ':\t' + move[0] + '\t\t' + move[1]
+            if ii >= len(self.nvim.buffers[self._infoboardbuffer]):
+                #self.nvim.buffers[self._infoboardbuffer].append(mv_str)
                 self.nvim.current.buffer.append(mv_str)
             else:
+                #self.nvim.buffers[self._infoboardbuffer][ii] = mv_str
                 self.nvim.current.buffer[ii] = mv_str
 
         self.nvim.command('setlocal nomodifiable')
@@ -125,6 +135,8 @@ class GnugoPlugin(GnuGo):
                                     nolist \
                                     nonumber \
                                     wrap')
+
+        self._infoboardbuffer = self.nvim.current.buffer.number
 
         # switch back to main split
         self.nvim.command('wincmd p')
