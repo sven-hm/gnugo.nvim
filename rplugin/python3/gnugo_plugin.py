@@ -1,8 +1,6 @@
-#!/usr/bin/python3
-
+from gnugo import GnuGo
 import pynvim
 
-from gnugo import GnuGo
 
 @pynvim.plugin
 class GnugoPlugin(GnuGo):
@@ -12,11 +10,14 @@ class GnugoPlugin(GnuGo):
         super(GnugoPlugin, self).__init__()
         self.nvim = nvim
 
+        self._move_history = []
+
 
     def Showboard(self):
 
         board = self.showboard()
 
+        # show board
         self.nvim.command('setlocal modifiable')
 
         if len(self.nvim.current.buffer) < self._boardsize:
@@ -28,6 +29,28 @@ class GnugoPlugin(GnuGo):
             self.nvim.current.buffer[line_number] = line
 
         self.nvim.command('setlocal nomodifiable')
+
+    def UpdateInfoBoard(self):
+
+        # store cursor position
+        _last_position = self.nvim.current.window.cursor
+        # show game info
+        self.nvim.command('buffer GnuGoInfo')
+        self.nvim.command('setlocal modifiable')
+
+        for ii, move in enumerate(self._move_history):
+            mv_str = str(ii + 1) + ': ' + move[0] \
+                    + '\t' + move[1]
+            if ii >= len(self.nvim.current.buffer):
+                self.nvim.current.buffer.append(mv_str)
+            else:
+                self.nvim.current.buffer[ii] = mv_str
+
+        self.nvim.command('setlocal nomodifiable')
+        self.nvim.command('buffer GnuGo')
+
+        # restort cursor position
+        self.nvim.current.window.cursor = _last_position
 
 
     def cursor2board(self, row, column):
@@ -77,18 +100,36 @@ class GnugoPlugin(GnuGo):
         if self._color == 'white':
             self.genmove()
 
+        # open GnuGo main buffer
         self.nvim.command('setlocal splitright')
-        self.nvim.command('new')
+        self.nvim.command('tabnew')
+        self.nvim.command('file GnuGo')
         self.nvim.command('filetype plugin on')
         self.nvim.command('setlocal buftype=nofile \
+                                    nomodifiable \
                                     bufhidden=hide \
                                     syntax=gnugo \
                                     filetype=gnugo \
                                     nolist \
                                     nonumber \
                                     wrap')
-        self.Showboard()
 
+        # open GnuGoInfo buffer
+        self.nvim.command('vnew')
+
+        self.nvim.command('file GnuGoInfo')
+
+        self.nvim.command('setlocal buftype=nofile \
+                                    nomodifiable \
+                                    bufhidden=hide \
+                                    nolist \
+                                    nonumber \
+                                    wrap')
+
+        # switch back to main split
+        self.nvim.command('wincmd p')
+
+        self.Showboard()
         self.nvim.current.window.cursor = self.board2cursor('D4')
 
 
@@ -191,6 +232,7 @@ class GnugoPlugin(GnuGo):
     @pynvim.command('GnugoQuit')
     def Quit(self):
 
+        # TODO: unload buffers
         self.quit()
 
 
@@ -210,4 +252,5 @@ class GnugoPlugin(GnuGo):
             self.nvim.out_write('Broken position.\n')
 
         self.get_output()
-        self.Showboard()
+        self._move_history.append((position, response_position))
+        self.UpdateInfoBoard()

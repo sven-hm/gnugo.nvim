@@ -2,8 +2,11 @@ if exists("b:did_ftplugin")
   finish
 endif
 
+" placing stones
 noremap <buffer> <Enter> :GnugoPlay<CR>
 noremap <buffer> <2-LeftMouse> :GnugoPlay<CR>
+
+" undo move TODO
 
 " move cursor
 nnoremap <buffer> k         :GnugoCursorUp<CR>
@@ -29,5 +32,16 @@ nnoremap <buffer> b         :echo "disabled"<CR>
 nnoremap <buffer> E         :echo "disabled"<CR>
 nnoremap <buffer> W         :echo "disabled"<CR>
 nnoremap <buffer> B         :echo "disabled"<CR>
+
+" info board
+"function GnugoInfoBoardToggle()
+"    if len(bufname("GnuGoInfo")) > 0
+"        buffer GnuGoInfo
+"    else
+"        GnugoInfoBoard
+"    endif
+"endfunction
+"
+"nnoremap <buffer> i         :call GnugoInfoBoardToggle()<CR>
 
 let b:did_ftplugin = 1

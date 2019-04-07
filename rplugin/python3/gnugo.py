@@ -1,10 +1,8 @@
-#!/usr/bin/python3
-
 from subprocess import Popen, PIPE, STDOUT
 from queue import Queue
 from threading import Thread
-
 import time
+
 
 class GnuGo(object):
 
@@ -93,13 +91,14 @@ class GnuGo(object):
         else:
             self.send('genmove black')
         while True:
-            time.sleep(0.5)
+            time.sleep(0.1)
             output = self.get_output()
             if output.find('=') != -1:
                 return output.split('=')[1].strip()
 
 
     def showboard(self):
+
         self.get_output()
         self.send('showboard')
         time.sleep(0.1)
