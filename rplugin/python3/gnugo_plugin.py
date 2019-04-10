@@ -1,36 +1,35 @@
-from gnugo import GnuGo
+import pygnugo
 import pynvim
 
 
 @pynvim.plugin
-class GnugoPlugin(GnuGo):
+class GnugoPlugin(object):
 
     def __init__(self, nvim):
 
-        super(GnugoPlugin, self).__init__()
         self.nvim = nvim
-
         self._move_history = []
-
         self._infoboardbuffer = None
+        self._gnugo = None
 
 
     def Showboard(self):
 
-        board = self.showboard()
+        board = self._gnugo.showboard()
 
         # show board
         self.nvim.command('setlocal modifiable')
 
-        if len(self.nvim.current.buffer) < self._boardsize:
-            for i in range(self._boardsize + 3):
+        if len(self.nvim.current.buffer) < self._gnugo._boardsize.value:
+            for i in range(self._gnugo._boardsize.value + 3):
                 self.nvim.current.buffer.append('')
-        for line_number, line in enumerate(board.split('\n')[1:]):
+        for line_number, line in enumerate(board.split('\n')):
             if line.find('BLACK') != -1 or line.find('WHITE') != -1:
                 line = line.split('  ')[0]
             self.nvim.current.buffer[line_number] = line
 
         self.nvim.command('setlocal nomodifiable')
+
 
     def UpdateInfoBoard(self):
 
@@ -65,13 +64,13 @@ class GnugoPlugin(GnuGo):
 
     def cursor2board(self, row, column):
 
-        row = self._boardsize - row + 2
-        if row < 1 or row > self._boardsize:
+        row = self._gnugo._boardsize.value - row + 2
+        if row < 1 or row > self._gnugo._boardsize.value:
             return None
         if (column - 3) % 2 == 1:
             return None
         column_index = int((column-3) / 2)
-        if column_index < 0 or column_index > self._boardsize - 1:
+        if column_index < 0 or column_index > self._gnugo._boardsize.value - 1:
             return None
         column = "ABCDEFGHJKLMNOPQRST"[column_index]
 
@@ -85,7 +84,7 @@ class GnugoPlugin(GnuGo):
             column = pos[0]
         except:
             return None
-        row = self._boardsize - row + 2
+        row = self._gnugo._boardsize.value - row + 2
         column_index = "ABCDEFGHJKLMNOPQRST".find(column)
         column = column_index * 2 + 3
         return (row, column)
@@ -95,20 +94,26 @@ class GnugoPlugin(GnuGo):
     def New(self, args):
 
         assert(len(args) > 0 and len(args) <= 2)
-        assert(args[0] == 'black' or args[0] == 'white')
+        if args[0] == 'black':
+            self._color = pygnugo.Color.BLACK
+        elif args[0] == 'white':
+            self._color = pygnugo.Color.WHITE
+        else:
+            self.nvim.out_write('Color should be black or white.\n')
+            return
 
         if len(args) == 2:
             try:
-                boardsize = int(args[1])
+                boardsize = pygnugo.Boardsize(args[1])
             except:
                 pass
-            self.start(color=args[0], boardsize=boardsize)
-            self._boardsize = boardsize
+            self._gnugo = pygnugo.GnuGo(color=args[0], boardsize=boardsize)
+            self._gnugo._boardsize.value = boardsize
         else:
-            self.start(color=args[0])
+            self._gnugo = pygnugo.GnuGo(color=args[0])
 
-        if self._color == 'white':
-            self.genmove()
+        if self._color == pygnugo.Color.WHITE:
+            self._gnugo.genmove()
 
         # open GnuGo main buffer
         self.nvim.command('setlocal splitright')
@@ -126,9 +131,7 @@ class GnugoPlugin(GnuGo):
 
         # open GnuGoInfo buffer
         self.nvim.command('vnew')
-
         self.nvim.command('file GnuGoInfo')
-
         self.nvim.command('setlocal buftype=nofile \
                                     nomodifiable \
                                     bufhidden=hide \
@@ -148,13 +151,17 @@ class GnugoPlugin(GnuGo):
     @pynvim.command('GnugoContinue')
     def Continue(self):
 
-        pass
+        if self._gnugo is None:
+            self.nvim.out_write('No game running.')
+        self.nvim.out_write('Not implemented.')
 
 
     @pynvim.command('GnugoCheat')
     def Cheat(self):
 
-        pass
+        if self._gnugo is None:
+            self.nvim.out_write('No game running.')
+        self.nvim.out_write('Not implemented.')
 
 
     @pynvim.command('GnugoListMoves')
@@ -162,11 +169,16 @@ class GnugoPlugin(GnuGo):
 
         # TODO
         # open split window and list last moves
-        pass
+        if self._gnugo is None:
+            self.nvim.out_write('No game running.')
+        self.nvim.out_write('Not implemented.')
 
 
     @pynvim.command('GnugoCursorUp', nargs='*', sync=True)
     def CursorUp(self, args):
+
+        if self._gnugo is None:
+            self.nvim.out_write('No game running.')
 
         if len(args) == 1:
             shift = int(args[0])
@@ -187,6 +199,9 @@ class GnugoPlugin(GnuGo):
     @pynvim.command('GnugoCursorDown', nargs='*', sync=True)
     def CursorDown(self, args):
 
+        if self._gnugo is None:
+            self.nvim.out_write('No game running.')
+
         if len(args) == 1:
             shift = int(args[0])
         else:
@@ -205,6 +220,9 @@ class GnugoPlugin(GnuGo):
 
     @pynvim.command('GnugoCursorLeft', nargs='*', sync=True)
     def CursorLeft(self, args):
+
+        if self._gnugo is None:
+            self.nvim.out_write('No game running.')
 
         if len(args) == 1:
             shift = 2 * int(args[0])
@@ -225,6 +243,9 @@ class GnugoPlugin(GnuGo):
     @pynvim.command('GnugoCursorRight', nargs='*', sync=True)
     def CursorRight(self, args):
 
+        if self._gnugo is None:
+            self.nvim.out_write('No game running.')
+
         if len(args) == 1:
             shift = 2 * int(args[0])
         else:
@@ -244,25 +265,30 @@ class GnugoPlugin(GnuGo):
     @pynvim.command('GnugoQuit')
     def Quit(self):
 
+        if self._gnugo is None:
+            self.nvim.out_write('No game running.')
+
         # TODO: unload buffers
-        self.quit()
+        self._gnugo.quit()
 
 
     @pynvim.command('GnugoPlay')
     def Play(self):
 
+        if self._gnugo is None:
+            self.nvim.out_write('No game running.')
+
         position = self.cursor2board(
                 *self.nvim.current.window.cursor)
 
         if position is not None:
-            self.play(position)
+            self._gnugo.play(self._color, pygnugo.Vertex(position))
             self.Showboard()
-            response_position = self.genmove()
+            response_position = self._gnugo.genmove(self._color.other())
             self.nvim.out_write('playing {} -> {}.\n'.format(position, response_position))
             self.Showboard()
         else:
             self.nvim.out_write('Broken position.\n')
 
-        self.get_output()
         self._move_history.append((position, response_position))
         self.UpdateInfoBoard()
