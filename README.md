@@ -32,17 +32,17 @@ That's all.
 To start type `:GnugoNew black` if you want to play the black stones otherwise type `:GnugoNew white`.
 The key bindings are:
 
-| keys           | Action               | pygnugo command  |
-|----------------|----------------------|------------------|
-| ←, h, (H)      | move cursor (fast)   | GnugoCursorLeft  |
-| ↓, j, (J)      | move cursor (fast)   | GnugoCursorDown  |
-| ↑, k, (K)      | move cursor (fast)   | GnugoCursorUp    |
-| →, l, (L)      | move cursor (fast)   | GnugoCursorRight |
-| <enter>        | play cursor position | GnugoPlay        |
-| <double-click> | play cursor position | GnugoPlay        |
-| c              | cheat                | GnugoQuit        |
-| u              | undo                 | GnugoUndo        |
-| q              | quit                 | GnugoCheat       |
+| keys             | Action               | pygnugo command  |
+|------------------|----------------------|------------------|
+| ←, h, (H)        | move cursor (fast)   | GnugoCursorLeft  |
+| ↓, j, (J)        | move cursor (fast)   | GnugoCursorDown  |
+| ↑, k, (K)        | move cursor (fast)   | GnugoCursorUp    |
+| →, l, (L)        | move cursor (fast)   | GnugoCursorRight |
+| `<enter>`        | play cursor position | GnugoPlay        |
+| `<double-click>` | play cursor position | GnugoPlay        |
+| c                | cheat                | GnugoQuit        |
+| u                | undo                 | GnugoUndo        |
+| q                | quit                 | GnugoCheat       |
 
 
 ## To do
