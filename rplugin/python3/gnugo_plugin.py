@@ -13,6 +13,8 @@ class GnugoPlugin(object):
         self._boardbuffer = None
         self._infoboardbuffer = None
 
+        self._busy = False
+
 
     def Showboard(self):
 
@@ -38,6 +40,7 @@ class GnugoPlugin(object):
         if self._infoboardbuffer is not None:
             info_board = []
 
+            info_board.append('')
             blacks_captures = self._gnugo.captures(pygnugo.Color.BLACK)
             whites_captures = self._gnugo.captures(pygnugo.Color.WHITE)
             info_board.append(
@@ -86,6 +89,9 @@ class GnugoPlugin(object):
 
     @pynvim.command('GnugoNew', nargs='*', sync=True)
     def New(self, args):
+
+        if self._gnugo is not None:
+            self.Quit()
 
         assert(len(args) > 0 and len(args) <= 2)
         if args[0] == 'black':
@@ -149,40 +155,53 @@ class GnugoPlugin(object):
     def Continue(self):
 
         if self._gnugo is None:
-            self.nvim.out_write('No game running.')
-        self.nvim.out_write('Not implemented.')
+            self.nvim.out_write('No game running.\n')
+        self.nvim.out_write('Not implemented.\n')
 
 
     @pynvim.command('GnugoCheat')
     def Cheat(self):
 
         if self._gnugo is None:
-            self.nvim.out_write('No game running.')
+            self.nvim.out_write('No game running.\n')
 
-        self._gnugo.genmove(self._color)
-        self.Showboard()
-        self.UpdateInfoBoard()
+        if self._busy:
+            self.nvim.out_write('gnugo is busy\n')
+        else:
+            self._busy = True
+            self._infoboardbuffer[0] = 'busy'
+            self._gnugo.genmove(self._color)
+            self.Showboard()
+            self.UpdateInfoBoard()
 
-        self._gnugo.genmove(self._color.other())
-        self.Showboard()
-        self.UpdateInfoBoard()
+            self._infoboardbuffer[0] = 'busy'
+            self._gnugo.genmove(self._color.other())
+            self.Showboard()
+            self.UpdateInfoBoard()
+            self._busy = False
 
 
     @pynvim.command('GnugoUndo')
     def Undo(self):
         if self._gnugo is None:
-            self.nvim.out_write('No game running.')
-        self._gnugo.undo()
-        self._gnugo.undo()
-        self.Showboard()
-        self.UpdateInfoBoard()
+            self.nvim.out_write('No game running.\n')
+
+        if self._busy:
+            self.nvim.out_write('gnugo is busy\n')
+        else:
+            self._busy = True
+            self._gnugo.undo()
+            self._gnugo.undo()
+            self.Showboard()
+            self.UpdateInfoBoard()
+            self._busy = False
 
 
     @pynvim.command('GnugoCursorUp', nargs='*', sync=True)
     def CursorUp(self, args):
 
         if self._gnugo is None:
-            self.nvim.out_write('No game running.')
+            self.nvim.out_write('No game running.\n')
 
         if len(args) == 1:
             shift = int(args[0])
@@ -204,7 +223,7 @@ class GnugoPlugin(object):
     def CursorDown(self, args):
 
         if self._gnugo is None:
-            self.nvim.out_write('No game running.')
+            self.nvim.out_write('No game running.\n')
 
         if len(args) == 1:
             shift = int(args[0])
@@ -226,7 +245,7 @@ class GnugoPlugin(object):
     def CursorLeft(self, args):
 
         if self._gnugo is None:
-            self.nvim.out_write('No game running.')
+            self.nvim.out_write('No game running.\n')
 
         if len(args) == 1:
             shift = 2 * int(args[0])
@@ -248,7 +267,7 @@ class GnugoPlugin(object):
     def CursorRight(self, args):
 
         if self._gnugo is None:
-            self.nvim.out_write('No game running.')
+            self.nvim.out_write('No game running.\n')
 
         if len(args) == 1:
             shift = 2 * int(args[0])
@@ -270,7 +289,8 @@ class GnugoPlugin(object):
     def Quit(self):
 
         if self._gnugo is None:
-            self.nvim.out_write('No game running.')
+            self.nvim.out_write('No game running.\n')
+            return
 
         self._gnugo.quit()
         self.nvim.command('bdelete GnuGo')
@@ -283,37 +303,48 @@ class GnugoPlugin(object):
     def Play(self):
 
         if self._gnugo is None:
-            self.nvim.out_write('No game running.')
+            self.nvim.out_write('No game running.\n')
 
-        position = self.cursor2board(
-                *self.nvim.current.window.cursor)
-
-        if position is not None:
-            self._gnugo.play(self._color, pygnugo.Vertex(position))
-            self.Showboard()
-            self.UpdateInfoBoard()
-            response_position = self._gnugo.genmove(self._color.other())
-            self.nvim.out_write('playing {} -> {}.\n'.format(position, response_position))
-            self.Showboard()
+        if self._busy:
+            self.nvim.out_write('gnugo is busy\n')
         else:
-            self.nvim.out_write('Broken position.\n')
+            self._busy = True
+            position = self.cursor2board(
+                    *self.nvim.current.window.cursor)
 
-        self.UpdateInfoBoard()
+            if position is not None:
+                self._gnugo.play(self._color, pygnugo.Vertex(position))
+                self.Showboard()
+                self.UpdateInfoBoard()
+                self._infoboardbuffer[0] = 'busy'
+                response_position = self._gnugo.genmove(self._color.other())
+                self.nvim.out_write('playing {} -> {}.\n'.format(
+                    position, response_position))
+                self.Showboard()
+            else:
+                self.nvim.out_write('Broken position.\n')
+
+            self.UpdateInfoBoard()
+            self._busy = False
 
 
     @pynvim.command('GnugoGenerateMove', nargs='*', sync=True)
     def GenerateMove(self, args):
 
         if self._gnugo is None:
-            self.nvim.out_write('No game running.')
+            self.nvim.out_write('No game running.\n')
 
-        assert(len(args) > 0 and len(args) <= 2)
-        if args[0] == 'black':
-            self._gnugo.genmove_black()
-        elif args[0] == 'white':
-            self._gnugo.genmove_white()
+        if self._busy:
+            self.nvim.out_write('gnugo is busy\n')
         else:
-            return
+            self._busy = True
+            assert(len(args) > 0 and len(args) <= 1)
+            self._infoboardbuffer[0] = 'busy'
+            if args[0] == 'black':
+                self._gnugo.genmove_black()
+            elif args[0] == 'white':
+                self._gnugo.genmove_white()
 
-        self.Showboard()
-        self.UpdateInfoBoard()
+            self.Showboard()
+            self.UpdateInfoBoard()
+            self._busy = False
