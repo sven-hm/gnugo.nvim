@@ -33,6 +33,11 @@ nnoremap <buffer> E         :echo "disabled"<CR>
 nnoremap <buffer> W         :echo "disabled"<CR>
 nnoremap <buffer> B         :echo "disabled"<CR>
 
+" undo
+nnoremap <buffer> u         :GnugoUndo<CR>
+" cheat
+nnoremap <buffer> c         :GnugoCheat<CR>
+
 " info board
 "function GnugoInfoBoardToggle()
 "    if len(bufname("GnuGoInfo")) > 0

@@ -153,17 +153,22 @@ class GnugoPlugin(object):
 
         if self._gnugo is None:
             self.nvim.out_write('No game running.')
-        self.nvim.out_write('Not implemented.')
 
+        self._gnugo.genmove(self._color)
+        self.Showboard()
+        response_position = self._gnugo.genmove(self._color.other())
 
-    @pynvim.command('GnugoListMoves')
-    def ListMoves(self):
+        self.Showboard()
+        self.UpdateInfoBoard()
 
-        # TODO
-        # open split window and list last moves
+    @pynvim.command('GnugoUndo')
+    def Undo(self):
         if self._gnugo is None:
             self.nvim.out_write('No game running.')
-        self.nvim.out_write('Not implemented.')
+        self._gnugo.undo()
+        self._gnugo.undo()
+        self.Showboard()
+        self.UpdateInfoBoard()
 
 
     @pynvim.command('GnugoCursorUp', nargs='*', sync=True)
@@ -285,5 +290,22 @@ class GnugoPlugin(object):
         else:
             self.nvim.out_write('Broken position.\n')
 
-        self._move_history.append((position, response_position))
+        self.UpdateInfoBoard()
+
+
+    @pynvim.command('GnugoGenerateMove', nargs='*', sync=True)
+    def GenerateMove(self, args):
+
+        if self._gnugo is None:
+            self.nvim.out_write('No game running.')
+
+        assert(len(args) > 0 and len(args) <= 2)
+        if args[0] == 'black':
+            self._gnugo.genmove_black()
+        elif args[0] == 'white':
+            self._gnugo.genmove_white()
+        else:
+            return
+
+        self.Showboard()
         self.UpdateInfoBoard()
