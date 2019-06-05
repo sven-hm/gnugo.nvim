@@ -156,10 +156,12 @@ class GnugoPlugin(object):
 
         self._gnugo.genmove(self._color)
         self.Showboard()
-        response_position = self._gnugo.genmove(self._color.other())
+        self.UpdateInfoBoard()
 
+        self._gnugo.genmove(self._color.other())
         self.Showboard()
         self.UpdateInfoBoard()
+
 
     @pynvim.command('GnugoUndo')
     def Undo(self):
