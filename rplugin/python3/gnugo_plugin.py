@@ -40,12 +40,16 @@ class GnugoPlugin(object):
 
             blacks_captures = self._gnugo.captures(pygnugo.Color.BLACK)
             whites_captures = self._gnugo.captures(pygnugo.Color.WHITE)
-            info_board.append('black (X) has captured {} white stones.'.format(blacks_captures))
-            info_board.append('white (O) has captured {} black stones.'.format(whites_captures))
+            info_board.append(
+                    'black (X) has captured {} white stones.'.format(
+                        blacks_captures))
+            info_board.append(
+                    'white (O) has captured {} black stones.'.format(
+                        whites_captures))
             info_board.append('')
 
-            history = enumerate(reversed(
-                self._gnugo.move_history().split('\n')))
+            history = reversed(list(enumerate(reversed(
+                self._gnugo.move_history().split('\n')))))
             info_board +=  list(
                     map(lambda h: str(h[0]) + ' ' + h[1].strip() , history))
 
@@ -287,6 +291,7 @@ class GnugoPlugin(object):
         if position is not None:
             self._gnugo.play(self._color, pygnugo.Vertex(position))
             self.Showboard()
+            self.UpdateInfoBoard()
             response_position = self._gnugo.genmove(self._color.other())
             self.nvim.out_write('playing {} -> {}.\n'.format(position, response_position))
             self.Showboard()
