@@ -37,6 +37,8 @@ nnoremap <buffer> B         :echo "disabled"<CR>
 nnoremap <buffer> u         :GnugoUndo<CR>
 " cheat
 nnoremap <buffer> c         :GnugoCheat<CR>
+" quit
+nnoremap <buffer> q         :GnugoQuit<CR>
 
 " info board
 "function GnugoInfoBoardToggle()
