@@ -2,8 +2,6 @@
 
 This is a neovim-plugin to play Go from within neovim. If you are using vim but not neovim have a look [here](https://github.com/AndrewRadev/gnugo.vim).
 
-<p align="center"><img src="/img/demo.gif?raw=true"/></p>
-
 
 ## Requirements
 
