@@ -137,6 +137,7 @@ class GnugoPlugin(object):
             self._gnugo.genmove(self._color.other())
 
         self.Showboard()
+        self.UpdateInfoBoard()
         self.nvim.current.window.cursor = self.board2cursor('D4')
 
 
