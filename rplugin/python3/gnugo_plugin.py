@@ -9,57 +9,37 @@ class GnugoPlugin(object):
 
         self.nvim = nvim
         self._move_history = []
-        self._infoboardbuffer = None
         self._gnugo = None
 
+        self._boardbuffer = None
+        self._infoboardbuffer = None
 
     def Showboard(self):
 
-        board = self._gnugo.showboard()
+        if self._boardbuffer is not None:
+            board = self._gnugo.showboard()
 
-        # show board
-        self.nvim.command('setlocal modifiable')
+            # show board
+            self.nvim.command('setlocal modifiable')
 
-        if len(self.nvim.current.buffer) < self._gnugo._boardsize.value:
-            for i in range(self._gnugo._boardsize.value + 3):
-                self.nvim.current.buffer.append('')
-        for line_number, line in enumerate(board.split('\n')):
-            if line.find('BLACK') != -1 or line.find('WHITE') != -1:
-                line = line.split('  ')[0]
-            self.nvim.current.buffer[line_number] = line
+            if len(self._boardbuffer) < self._gnugo._boardsize.value:
+                for i in range(self._gnugo._boardsize.value + 3):
+                    self._boardbuffer.append('')
+            for line_number, line in enumerate(board.split('\n')):
+                if line.find('BLACK') != -1 or line.find('WHITE') != -1:
+                    line = line.split('  ')[0]
+                self._boardbuffer[line_number] = line
 
-        self.nvim.command('setlocal nomodifiable')
+            self.nvim.command('setlocal nomodifiable')
 
 
     def UpdateInfoBoard(self):
 
-        # store cursor position
-        _last_position = self.nvim.current.window.cursor
-        # show game info
-        self.nvim.command('buffer GnuGoInfo')
-        self.nvim.command('setlocal modifiable')
-
-        head_str = '\tBLACK\tWHITE'
-        if len(self.nvim.buffers[self._infoboardbuffer]) == 0:
-            self.nvim.current.buffer.append(head_str)
-        else:
-            self.nvim.current.buffer[0] = head_str
-
-        for ii, move in enumerate(self._move_history):
-            ii += 1
-            mv_str = str(ii) + ':\t' + move[0] + '\t\t' + move[1]
-            if ii >= len(self.nvim.buffers[self._infoboardbuffer]):
-                #self.nvim.buffers[self._infoboardbuffer].append(mv_str)
-                self.nvim.current.buffer.append(mv_str)
-            else:
-                #self.nvim.buffers[self._infoboardbuffer][ii] = mv_str
-                self.nvim.current.buffer[ii] = mv_str
-
-        self.nvim.command('setlocal nomodifiable')
-        self.nvim.command('buffer GnuGo')
-
-        # restort cursor position
-        self.nvim.current.window.cursor = _last_position
+        if self._infoboardbuffer is not None:
+            history = enumerate(reversed(
+                self._gnugo.move_history().split('\n')))
+            self._infoboardbuffer[:] = list(
+                    map(lambda h: str(h[0]) + ' ' + h[1] , history))
 
 
     def cursor2board(self, row, column):
@@ -119,6 +99,7 @@ class GnugoPlugin(object):
         self.nvim.command('setlocal splitright')
         self.nvim.command('tabnew')
         self.nvim.command('file GnuGo')
+        self._boardbuffer = self.nvim.current.buffer
         self.nvim.command('filetype plugin on')
         self.nvim.command('setlocal buftype=nofile \
                                     nomodifiable \
@@ -132,14 +113,15 @@ class GnugoPlugin(object):
         # open GnuGoInfo buffer
         self.nvim.command('vnew')
         self.nvim.command('file GnuGoInfo')
+        self._infoboardbuffer = self.nvim.current.buffer
         self.nvim.command('setlocal buftype=nofile \
-                                    nomodifiable \
                                     bufhidden=hide \
+                                    syntax=gnugoinfo \
+                                    filetype=gnugoinfo \
                                     nolist \
                                     nonumber \
                                     wrap')
 
-        self._infoboardbuffer = self.nvim.current.buffer.number
 
         # switch back to main split
         self.nvim.command('wincmd p')
@@ -268,8 +250,11 @@ class GnugoPlugin(object):
         if self._gnugo is None:
             self.nvim.out_write('No game running.')
 
-        # TODO: unload buffers
         self._gnugo.quit()
+        self.nvim.command('bdelete GnuGo')
+        self.nvim.command('bdelete GnuGoInfo')
+        self._boardbuffer = None
+        self._infoboardbuffer = None
 
 
     @pynvim.command('GnugoPlay')
