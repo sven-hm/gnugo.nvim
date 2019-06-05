@@ -39,7 +39,7 @@ class GnugoPlugin(object):
             history = enumerate(reversed(
                 self._gnugo.move_history().split('\n')))
             self._infoboardbuffer[:] = list(
-                    map(lambda h: str(h[0]) + ' ' + h[1] , history))
+                    map(lambda h: str(h[0]) + ' ' + h[1].strip() , history))
 
 
     def cursor2board(self, row, column):
@@ -87,13 +87,10 @@ class GnugoPlugin(object):
                 boardsize = pygnugo.Boardsize(args[1])
             except:
                 pass
-            self._gnugo = pygnugo.GnuGo(color=args[0], boardsize=boardsize)
+            self._gnugo = pygnugo.GnuGo(boardsize=boardsize)
             self._gnugo._boardsize.value = boardsize
         else:
-            self._gnugo = pygnugo.GnuGo(color=args[0])
-
-        if self._color == pygnugo.Color.WHITE:
-            self._gnugo.genmove()
+            self._gnugo = pygnugo.GnuGo()
 
         # open GnuGo main buffer
         self.nvim.command('setlocal splitright')
@@ -125,6 +122,9 @@ class GnugoPlugin(object):
 
         # switch back to main split
         self.nvim.command('wincmd p')
+
+        if self._color == pygnugo.Color.WHITE:
+            self._gnugo.genmove(self._color.other())
 
         self.Showboard()
         self.nvim.current.window.cursor = self.board2cursor('D4')
