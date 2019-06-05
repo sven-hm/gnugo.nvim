@@ -8,11 +8,11 @@ class GnugoPlugin(object):
     def __init__(self, nvim):
 
         self.nvim = nvim
-        self._move_history = []
         self._gnugo = None
 
         self._boardbuffer = None
         self._infoboardbuffer = None
+
 
     def Showboard(self):
 
@@ -36,10 +36,20 @@ class GnugoPlugin(object):
     def UpdateInfoBoard(self):
 
         if self._infoboardbuffer is not None:
+            info_board = []
+
+            blacks_captures = self._gnugo.captures(pygnugo.Color.BLACK)
+            whites_captures = self._gnugo.captures(pygnugo.Color.WHITE)
+            info_board.append('black (X) has captured {} white stones.'.format(blacks_captures))
+            info_board.append('white (O) has captured {} black stones.'.format(whites_captures))
+            info_board.append('')
+
             history = enumerate(reversed(
                 self._gnugo.move_history().split('\n')))
-            self._infoboardbuffer[:] = list(
+            info_board +=  list(
                     map(lambda h: str(h[0]) + ' ' + h[1].strip() , history))
+
+            self._infoboardbuffer[:] = info_board
 
 
     def cursor2board(self, row, column):
