@@ -42,9 +42,10 @@ The key bindings are:
 | u                | undo                 | GnugoUndo        |
 | q                | quit                 | GnugoCheat       |
 
+For more details type `:help gnugo.nvim`.
 
 ## To do
 
-* Load from and save to `sgf`-file.
 * Allow other board sizes.
 * Complete README.
+* Complete docs.

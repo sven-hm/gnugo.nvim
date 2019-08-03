@@ -1,0 +1,98 @@
+*Gnugo* *gnugo.nvim* *gnugo-nvim* A gnugo plugin for nvim
+
+                                                    _       ~
+                      ___ ___ _ _ ___ ___   ___ _ _|_|_____ ~
+                     | . |   | | | . | . |_|   | | | |     |~
+                     |_  |_|_|___|_  |___|_|_|_|\_/|_|_|_|_|~
+                     |___|       |___|                      ~
+
+
+                               Version: 0.0.0
+
+==============================================================================
+CONTENTS                                                  *gnugo-nvim-content*
+
+    1. Intro                         |gnugo-nvim-intro|
+    2. Commands                      |gnugo-nvim-commands|
+    3. Shortcuts                     |gnugo-nvim-shortcuts|
+    4. Internal                      |gnugo-nvim-internal|
+
+==============================================================================
+1. Intro                                                    *gnugo-nvim-intro*
+
+Bla bla.
+
+==============================================================================
+2. Commands                                              *gnugo-nvim-commands*
+
+------------------------------------------------------------------------------
+2.1 General commands                             *gnugo-nvim-general-commands*
+
+*:GnugoNew* color [boardsize]           Create a new game against the gnugo
+                                      engine.
+
+*:GnugoLoadSgf* file                    Load a game from a sgf-file.
+
+*:GnugoSaveSgf* file                    Save game to a sgf-file.
+
+*:GnugoQuit*                            Quit the current game.
+
+------------------------------------------------------------------------------
+2.2 Game modification commands         *gnugo-nvim-game-modification-commands*
+
+*:GnugoPlay*                            Place a stone at your current cursor
+                                      position.
+
+*:GnugoGenerateMove* color              Generate a move of given colored stone. 
+
+*:GnugoContinue*                        Pass.
+
+*:GnugoCheat*                           Let the gnugo engine generate a move
+                                      for you.
+
+*:GnugoUndo*                            Undo your last move.
+
+------------------------------------------------------------------------------
+2.3 Navigation commands                       *gnugo-nvim-navigation-commands*
+
+*:GnugoCursorUp* [njumps]               Move the cursor on the board up.
+
+*:GnugoCursorDown* [njumps]             Move the cursor on the board down.
+
+*:GnugoCursorLeft* [njumps]             Move the cursor on the board left.
+
+*:GnugoCursorRight* [njumps]            Move the cursor on the board right.
+
+==============================================================================
+3. Shortcuts                                            *gnugo-nvim-shortcuts*
+
+<Enter>         |:GnugoPlay|
+<2-LeftMouse>   |:GnugoPlay|
+
+<Up>            |:GnugoCursorUp|
+<Down>          |:GnugoCursorDown|
+<Left>          |:GnugoCursorLeft|
+<Right>         |:GnugoCursorRight|
+
+k               |:GnugoCursorUp|
+j               |:GnugoCursorDown|
+h               |:GnugoCursorLeft|
+l               |:GnugoCursorRight|
+
+K               |:GnugoCursorUp| 6
+J               |:GnugoCursorDown| 6
+H               |:GnugoCursorLeft| 6
+L               |:GnugoCursorRight| 6
+
+u               |:GnugoUndo|
+c               |:GnugoCheat|
+q               |:GnugoQuit|
+
+==============================================================================
+3. Internal                                              *gnugo-nvim-internal*
+
+There is still some stuff left to do!
+- reload all boardsizes from file
+
+==============================================================================
+vim:tw=78:ts=8:ft=help
