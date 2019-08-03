@@ -1,5 +1,6 @@
 import pygnugo
 import pynvim
+import os
 
 
 @pynvim.plugin
@@ -87,6 +88,42 @@ class GnugoPlugin(object):
         return (row, column)
 
 
+    @pynvim.command('GnugoLoadSgf', nargs='*', sync=True)
+    def Load(self, args):
+
+        if self._gnugo is not None:
+            self.Quit()
+
+        if len(args) == 0 or len(args) > 1:
+            self.nvim.out_write('Specify filename.\n')
+            return
+
+        if not os.path.exists(args[0]):
+            self.nvim.out_write('File not found.\n')
+            return
+
+        self._gnugo = pygnugo.GnuGo()
+        self._gnugo.loadsgf(args[0])
+        # FIXME: read color and boardsize from file
+        self._color = pygnugo.Color.BLACK
+        self._boardsize = pygnugo.Boardsize(19)
+
+        self.Init()
+
+
+    @pynvim.command('GnugoSaveSgf', nargs='*', sync=True)
+    def Save(self, args):
+
+        if self._gnugo is None:
+            self.nvim.out_write('No game running.\n')
+
+        if len(args) == 0 or len(args) > 1:
+            self.nvim.out_write('Specify filename.\n')
+            return
+
+        self._gnugo.save_with_history(args[0])
+
+
     @pynvim.command('GnugoNew', nargs='*', sync=True)
     def New(self, args):
 
@@ -111,6 +148,11 @@ class GnugoPlugin(object):
             self._gnugo._boardsize.value = boardsize
         else:
             self._gnugo = pygnugo.GnuGo()
+
+        self.Init()
+
+
+    def Init(self):
 
         # open GnuGo main buffer
         self.nvim.command('setlocal splitright')
@@ -297,6 +339,7 @@ class GnugoPlugin(object):
         self.nvim.command('bdelete GnuGoInfo')
         self._boardbuffer = None
         self._infoboardbuffer = None
+        self._gnugo = None
 
 
     @pynvim.command('GnugoPlay')
@@ -313,7 +356,12 @@ class GnugoPlugin(object):
                     *self.nvim.current.window.cursor)
 
             if position is not None:
-                self._gnugo.play(self._color, pygnugo.Vertex(position))
+                try:
+                    self._gnugo.play(self._color, pygnugo.Vertex(position))
+                except:
+                    self.nvim.out_write('illegal move\n')
+                    self._busy = False
+                    return
                 self.Showboard()
                 self.UpdateInfoBoard()
                 self._infoboardbuffer[0] = 'busy'
