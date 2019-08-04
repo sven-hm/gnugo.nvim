@@ -10,6 +10,7 @@ class GnugoPlugin(object):
 
         self.nvim = nvim
         self._gnugo = None
+        self._color = None
 
         self._boardbuffer = None
         self._infoboardbuffer = None
@@ -55,7 +56,7 @@ class GnugoPlugin(object):
             history = reversed(list(enumerate(reversed(
                 self._gnugo.move_history().split('\n')))))
             info_board +=  list(
-                    map(lambda h: str(h[0]) + ' ' + h[1].strip() , history))
+                    map(lambda h: str(h[0]) + '\t' + h[1].strip() , history))
 
             self._infoboardbuffer[:] = info_board
 
@@ -103,12 +104,28 @@ class GnugoPlugin(object):
             return
 
         self._gnugo = pygnugo.GnuGo()
+
+        # get game info
+        _info = self._gnugo.read_sgf_info(args[0], ['PB', 'PW'])
+        if len(_info['PB']) > 0 and _info['PB'][0] == 'gnugo':
+            self._color = pygnugo.Color.WHITE
+        elif len(_info['PW']) > 0 and _info['PW'][0] == 'gnugo':
+            self._color = pygnugo.Color.BLACK
+        else:
+            self.nvim.out_write('Cannot read info from file..\n')
+            return
+
+        # load game
         self._gnugo.loadsgf(args[0])
-        # FIXME: read color and boardsize from file
-        self._color = pygnugo.Color.BLACK
-        self._boardsize = pygnugo.Boardsize(19)
+        self._boardsize = self._gnugo.query_boardsize()
 
         self.Init()
+
+
+    @pynvim.command('GnugoReload')
+    def Reload(self):
+
+        self.Load([self.nvim.eval('g:gnugonvim_current_game_file')])
 
 
     @pynvim.command('GnugoSaveSgf', nargs='*', sync=True)
@@ -121,7 +138,14 @@ class GnugoPlugin(object):
             self.nvim.out_write('Specify filename.\n')
             return
 
-        self._gnugo.save_with_history(args[0])
+        game_info = {}
+        if self._color == pygnugo.Color.BLACK:
+            game_info['PW'] = 'gnugo'
+        else:
+            game_info['PB'] = 'gnugo'
+
+        self._gnugo.save_with_history(args[0],
+                game_information=game_info)
 
 
     @pynvim.command('GnugoNew', nargs='*', sync=True)
@@ -149,10 +173,12 @@ class GnugoPlugin(object):
         else:
             self._gnugo = pygnugo.GnuGo()
 
-        self.Init()
+        self.Init(pygnugo.Color.BLACK
+                if self._color == pygnugo.Color.WHITE
+                else None)
 
 
-    def Init(self):
+    def Init(self, color_to_move=None):
 
         # open GnuGo main buffer
         self.nvim.command('setlocal splitright')
@@ -185,8 +211,8 @@ class GnugoPlugin(object):
         # switch back to main split
         self.nvim.command('wincmd p')
 
-        if self._color == pygnugo.Color.WHITE:
-            self._gnugo.genmove(self._color.other())
+        if type(color_to_move) == pygnugo.Color:
+            self._gnugo.genmove(color_to_move)
 
         self.Showboard()
         self.UpdateInfoBoard()
@@ -333,6 +359,8 @@ class GnugoPlugin(object):
         if self._gnugo is None:
             self.nvim.out_write('No game running.\n')
             return
+
+        self.Save([self.nvim.eval('g:gnugonvim_current_game_file')])
 
         self._gnugo.quit()
         self.nvim.command('bdelete GnuGo')
