@@ -162,7 +162,8 @@ class GnugoPlugin(object):
         elif args[0] == 'white':
             self._color = pygnugo.Color.WHITE
         else:
-            self.nvim.out_write('Color should be black or white.\n')
+            self._color = pygnugo.Color.BLACK
+            self.nvim.out_write('No player color found in sgf file. Gnugo plays white.\n')
             return
 
         if len(args) == 2:
@@ -373,7 +374,11 @@ class GnugoPlugin(object):
             self.nvim.out_write('No game running.\n')
             return
 
-        self.Save([self.nvim.eval('g:gnugonvim_current_game_file')])
+        try:
+            self.Save([self.nvim.eval('g:gnugonvim_current_game_file')])
+        except:
+            self.nvim.out_write('Game is lost since \
+                    g:gnugonvim_current_game_file is not specified.\n')
 
         self._gnugo.quit()
         self.nvim.command('bdelete GnuGo')
