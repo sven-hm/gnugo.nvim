@@ -43,6 +43,8 @@ class GnugoPlugin(object):
             info_board = []
 
             info_board.append('')
+            info_board.append('gnugo plays ' + str(self._color.other()))
+            info_board.append('')
             blacks_captures = self._gnugo.captures(pygnugo.Color.BLACK)
             whites_captures = self._gnugo.captures(pygnugo.Color.WHITE)
             info_board.append(
@@ -219,12 +221,23 @@ class GnugoPlugin(object):
         self.nvim.current.window.cursor = self.board2cursor('D4')
 
 
-    @pynvim.command('GnugoContinue')
-    def Continue(self):
+    @pynvim.command('GnugoPass')
+    def Pass(self):
 
         if self._gnugo is None:
             self.nvim.out_write('No game running.\n')
-        self.nvim.out_write('Not implemented.\n')
+
+        if self._busy:
+            self.nvim.out_write('gnugo is busy\n')
+        else:
+            self._busy = True
+            self._infoboardbuffer[0] = 'busy'
+            response_position = self._gnugo.genmove(self._color.other())
+            self.nvim.out_write('playing ... -> {}.\n'.format(
+                response_position))
+            self.Showboard()
+            self.UpdateInfoBoard()
+            self._busy = False
 
 
     @pynvim.command('GnugoCheat')

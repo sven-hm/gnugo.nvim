@@ -6,8 +6,6 @@ endif
 noremap <buffer> <Enter> :GnugoPlay<CR>
 noremap <buffer> <2-LeftMouse> :GnugoPlay<CR>
 
-" undo move TODO
-
 " move cursor
 nnoremap <buffer> k         :GnugoCursorUp<CR>
 nnoremap <buffer> j         :GnugoCursorDown<CR>
@@ -37,6 +35,8 @@ nnoremap <buffer> B         :echo "disabled"<CR>
 nnoremap <buffer> u         :GnugoUndo<CR>
 " cheat
 nnoremap <buffer> c         :GnugoCheat<CR>
+" pass
+nnoremap <buffer> p         :GnugoPass<CR>
 " quit
 nnoremap <buffer> q         :GnugoQuit<CR>
 
