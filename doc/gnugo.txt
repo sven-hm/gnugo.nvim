@@ -7,45 +7,79 @@
                      |___|       |___|                      ~
 
 
-                               Version: 0.0.0
+                               version: 1.0
 
 ==============================================================================
 CONTENTS                                                  *gnugo-nvim-content*
 
     1. Intro                         |gnugo-nvim-intro|
-    2. Commands                      |gnugo-nvim-commands|
-    3. Shortcuts                     |gnugo-nvim-shortcuts|
-    4. Internal                      |gnugo-nvim-internal|
+    2. Configuration                 |gnugo-nvim-configuration|
+    3. Commands                      |gnugo-nvim-commands|
+    4. Shortcuts                     |gnugo-nvim-shortcuts|
+    5. About                         |gnugo-nvim-about|
 
 ==============================================================================
 1. Intro                                                    *gnugo-nvim-intro*
 
-Bla bla.
+gnugo.nvim is a plugin which allows you to play Go against gnugo in neovim.
+You can have a current game or multiple games stored and reloaded from
+sgf-files.
+
+To start a new game type
+`:GnugoNew black`
+Gnugo will play the other color. The default (and currently only supported)
+boardsize is 19x19.
+
+To be able to save and reload a current game quickly copy and modify the
+following two lines in your init.vim:
+`let g:gnugonvim_current_game_file = '/home/your_name/.current_gnugo_game.sgf'`
+`nnoremap <leader>gg :GnugoReload<CR>`
 
 ==============================================================================
-2. Commands                                              *gnugo-nvim-commands*
+2. Configuration                                  *gnugo-nvim-coconfiguration*
+
+*g:gnugonvim_current_game_file*         File where the current game is stored
+                                      when using |:GnugoQuit| and from where
+                                      it is reloaded when using |:GnugoReload|.
+
+==============================================================================
+3. Commands                                              *gnugo-nvim-commands*
 
 ------------------------------------------------------------------------------
-2.1 General commands                             *gnugo-nvim-general-commands*
+3.1 General commands                             *gnugo-nvim-general-commands*
 
-*:GnugoNew* color [boardsize]           Create a new game against the gnugo
-                                      engine.
+*:GnugoNew* color                       Create a new game against the gnugo
+                                      engine. color can be black or white.
+                                      Currently only 19x19 boardsize is
+                                      supported.
 
 *:GnugoLoadSgf* file                    Load a game from a sgf-file.
+                                      gnugo.nvim searches in the game file for
+                                      `PB[gnugo]` or `PW[gnugo]` to know in
+                                      what color gnugo should play. When 
+                                      loading an sgf file without this
+                                      information gnugo will play white.
 
-*:GnugoSaveSgf* file                    Save game to a sgf-file.
+*:GnugoSaveSgf* file                    Save game to an sgf-file. Including
+                                      information which color is played by
+                                      gnugo.
 
-*:GnugoQuit*                            Quit the current game.
+*:GnugoQuit*                            Quit the current game. If
+                                      |g:gnugonvim_current_game_file| is
+                                      specified the game will be saved.
+
+*:GnugoReload*                          Reload game from
+                                      |g:gnugonvim_current_game_file|.
 
 ------------------------------------------------------------------------------
-2.2 Game modification commands         *gnugo-nvim-game-modification-commands*
+3.2 Game modification commands         *gnugo-nvim-game-modification-commands*
 
 *:GnugoPlay*                            Place a stone at your current cursor
                                       position.
 
-*:GnugoGenerateMove* color              Generate a move of given colored stone. 
+*:GnugoGenerateMove* color              Generate a move of given colored stone.
 
-*:GnugoContinue*                        Pass.
+*:GnugoPass*                            Pass your move.
 
 *:GnugoCheat*                           Let the gnugo engine generate a move
                                       for you.
@@ -53,7 +87,7 @@ Bla bla.
 *:GnugoUndo*                            Undo your last move.
 
 ------------------------------------------------------------------------------
-2.3 Navigation commands                       *gnugo-nvim-navigation-commands*
+3.3 Navigation commands                       *gnugo-nvim-navigation-commands*
 
 *:GnugoCursorUp* [njumps]               Move the cursor on the board up.
 
@@ -64,7 +98,7 @@ Bla bla.
 *:GnugoCursorRight* [njumps]            Move the cursor on the board right.
 
 ==============================================================================
-3. Shortcuts                                            *gnugo-nvim-shortcuts*
+4. Shortcuts                                            *gnugo-nvim-shortcuts*
 
 <Enter>         |:GnugoPlay|
 <2-LeftMouse>   |:GnugoPlay|
@@ -86,13 +120,15 @@ L               |:GnugoCursorRight| 6
 
 u               |:GnugoUndo|
 c               |:GnugoCheat|
+p               |:GnugoPass|
 q               |:GnugoQuit|
 
 ==============================================================================
-3. Internal                                              *gnugo-nvim-internal*
+5. About                                                    *gnugo-nvim-about*
 
-There is still some stuff left to do!
-- reload all boardsizes from file
+If you want to comment suggest improve report issues or read the license
+visit:
+https://github.com/sven-hm/gnugo.nvim
 
 ==============================================================================
 vim:tw=78:ts=8:ft=help
