@@ -273,7 +273,6 @@ class GnugoPlugin(object):
         else:
             self._busy = True
             self._gnugo.undo()
-            self._gnugo.undo()
             self.Showboard()
             self.UpdateInfoBoard()
             self._busy = False
